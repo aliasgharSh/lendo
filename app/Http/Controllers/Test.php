@@ -7,6 +7,6 @@ use Illuminate\Http\Request;
 class Test extends Controller
 {
     public function t1(){
-        dd("hi");
+        echo "hi";
     }
 }
