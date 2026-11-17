@@ -8,6 +8,8 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Traits\ApiResponse;
+use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private AuthService $authService
     ) {}
@@ -23,10 +26,7 @@ class AuthController extends Controller
     {
         $data = $request->validated();
         $user = $this->authService->create($data);
-        return response()->json([
-            'message' => 'ثبت نام موفق',
-            'user' => new UserResource($user),
-        ]);
+        return $this->successResponse("ثبت نام موفق",new UserResource($user),Response::HTTP_CREATED);
     }
 
     public function login(LoginRequest $request)
@@ -34,15 +34,16 @@ class AuthController extends Controller
         $data = $request->validated();
         $result = $this->authService->login($data);
         if (! $result) {
-            return response()->json([
-                "massage" => "ایمیل یا رمز عبور اشتباه است",
-            ], Response::HTTP_UNAUTHORIZED);
+            return $this->errorResponse("ایمیل یا رمز عبور اشتباه است", Response::HTTP_UNAUTHORIZED);
         }
-        return response()->json([
-            'message' => 'با موفقیت وارد شدید',
-            'user' => new UserResource($result['user']),
-            'token' => $result['token'],
-        ]);
+        return $this->successResponse
+        (
+            "با موفقیت وارد شدید",
+            [
+                'user' => new UserResource($result['user']),
+                'token' => $result['token'],
+            ]
+        );
     }
 
     //logout
