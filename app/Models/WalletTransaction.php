@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WalletTransaction extends Model
 {
+    const  UPDATED_AT = NULL;
     protected $fillable = [
         'type',
         'amount',

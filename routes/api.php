@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Wallet\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,3 +19,4 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
     });
 });
 
+Route::POST("wallet/deposit",[WalletController::class,"deposit"])->middleware("auth:sanctum");
