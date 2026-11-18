@@ -19,4 +19,9 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
     });
 });
 
-Route::POST("wallet/deposit",[WalletController::class,"deposit"])->middleware("auth:sanctum");
+Route::middleware("auth:sanctum")->prefix("wallet")->controller(WalletController::class)->group(function () {
+    Route::get("/show","show");
+    Route::post("/deposit","deposit");
+    Route::post("/withdraw","withdraw");
+    Route::get("/transactions","transactions");
+});

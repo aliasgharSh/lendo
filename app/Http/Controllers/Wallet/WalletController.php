@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Wallet;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositRequest;
+use App\Http\Requests\WithdrawRequest;
 use App\Http\Resources\WalletResource;
+use App\Http\Resources\WalletTransactionResource;
 use App\Services\WalletService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -17,31 +19,43 @@ class WalletController extends Controller
         private WalletService $walletService,
 
     ) {}
-    public function show()
+    // نمایش اطلاعات کیف پول کاربر
+    public function show(Request $request)
     {
-        // نمایش اطلاعات کیف پول کاربر
+        $user = $request->user()->load('wallet');
+
+        $wallet = $user->wallet;
+        if (!$wallet) {
+            return $this->errorResponse('Wallet not found.', 404);
+        }
+        return $this->successResponse('Wallet information.', new WalletResource($wallet));
     }
 
     public function deposit(DepositRequest $request)
     {
-        $wallet = $this->walletService->deposit(
-            $request->user(),
-            $request->validated('amount')
-        );
-
-        return $this->successResponse(
-            'Deposit successful.',
-            new WalletResource($wallet)
-        );
+        $wallet = $this->walletService->deposit($request->user(), $request->validated('amount'));
+        return $this->successResponse('Deposit successful.', new WalletResource($wallet));
     }
 
-    public function withdraw(Request $request)
+    public function withdraw(WithdrawRequest $request)
     {
-        // کاهش موجودی کیف پول
+        $wallet = $this->walletService->withdraw($request->user(), $request->validated('amount'));
+        return $this->successResponse('Withdrawal successful.', new WalletResource($wallet));
     }
 
-    public function transactions()
+    public function transactions(Request $request)
     {
-        // تاریخچه تراکنش‌های کیف پول
+        $wallet = $request->user()->wallet;
+
+        if (!$wallet) {
+            return $this->errorResponse('Wallet not found.', 404);
+        }
+
+        $transactions = $wallet->transactions;
+
+        if ($transactions->isEmpty()) {
+            return $this->errorResponse('No transactions found.', 404);
+        }
+        return $this->successResponse('Wallet transactions information.',WalletTransactionResource::collection($transactions));
     }
 }
