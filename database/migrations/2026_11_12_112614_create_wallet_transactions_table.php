@@ -15,10 +15,12 @@ return new class extends Migration
         Schema::create('wallet_transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId("wallet_id")->constrained("wallets");
-            $table->enum("type",["deposit","withdrawal"]);
+            $table->enum("type", ["deposit", "withdrawal"]);
             $table->unsignedBigInteger("amount");
             $table->unsignedBigInteger("before_balance");
             $table->unsignedBigInteger("after_balance");
+            $table->uuid("idempotency_key");
+            $table->unique(['wallet_id', 'idempotency_key']);
             $table->timestamp("created_at");
         });
     }

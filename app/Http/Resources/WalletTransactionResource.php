@@ -19,7 +19,7 @@ class WalletTransactionResource extends JsonResource
             "amount" => $this->amount,
             "before_balance" => $this->before_balance,
             "after_balance" => $this->after_balance,
-            "created_at" => $this->created_at,
+            "created_at" => $this->created_at->format('Y/m/d H:i:s'),,
         ];
     }
 }

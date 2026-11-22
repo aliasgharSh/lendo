@@ -32,13 +32,15 @@ class WalletController extends Controller
 
     public function deposit(DepositRequest $request)
     {
-        $wallet = $this->walletService->deposit($request->user(), $request->validated('amount'));
+        $key = $request->header('Idempotency-Key');
+        $wallet = $this->walletService->deposit($request->user(), $request->validated('amount'), $key);
         return $this->successResponse('Deposit successful.', new WalletResource($wallet));
     }
 
     public function withdraw(WithdrawRequest $request)
     {
-        $wallet = $this->walletService->withdraw($request->user(), $request->validated('amount'));
+        $key = $request->header('Idempotency-Key');
+        $wallet = $this->walletService->withdraw($request->user(), $request->validated('amount'),$key);
         return $this->successResponse('Withdrawal successful.', new WalletResource($wallet));
     }
 

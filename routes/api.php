@@ -21,7 +21,7 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
 
 Route::middleware("auth:sanctum")->prefix("wallet")->controller(WalletController::class)->group(function () {
     Route::get("/show","show")->name("show");
-    Route::post("/deposit","deposit")->name("deposit");
-    Route::post("/withdraw","withdraw")->name("withdraw");
+    Route::post("/deposit","deposit")->name("deposit")->middleware('EnsureIdempotency');
+    Route::post("/withdraw","withdraw")->name("withdraw")->middleware('EnsureIdempotency');
     Route::get("/transactions","transactions")->name("transactions");
 });

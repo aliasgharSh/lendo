@@ -12,7 +12,13 @@ class WalletTransaction extends Model
         'amount',
         'before_balance',
         'after_balance',
+        'idempotency_key'
     ];
+    
+    protected $casts = [
+        'created_at' => 'datetime:Y/m/d H:i:s'
+    ];
+
     public function wallet()
     {
         return $this->belongsTo(Wallet::class);
