@@ -20,8 +20,8 @@ Route::prefix('auth')->controller(AuthController::class)->group(function () {
 });
 
 Route::middleware("auth:sanctum")->prefix("wallet")->controller(WalletController::class)->group(function () {
-    Route::get("/show","show");
-    Route::post("/deposit","deposit");
-    Route::post("/withdraw","withdraw");
-    Route::get("/transactions","transactions");
+    Route::get("/show","show")->name("show");
+    Route::post("/deposit","deposit")->name("deposit");
+    Route::post("/withdraw","withdraw")->name("withdraw");
+    Route::get("/transactions","transactions")->name("transactions");
 });

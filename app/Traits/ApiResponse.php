@@ -7,16 +7,17 @@ trait ApiResponse
     protected function successResponse($message, $data = null, $statusCode = 200)
     {
         return response()->json([
-            "success"=> true,
-            "massage" => $message,
+            "success" => true,
+            "message" => $message,
             "data" => $data,
-        ],$statusCode);
+        ], $statusCode);
     }
-    protected function errorResponse($message,$statusCode=400)
+
+    protected function errorResponse($message, $statusCode = 400)
     {
         return response()->json([
-            "success"=> false,
-            "massage" => $message,
-        ],$statusCode);
+            "success" => false,
+            "message" => $message,
+        ], $statusCode);
     }
 }
