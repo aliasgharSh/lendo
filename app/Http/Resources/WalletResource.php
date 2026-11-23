@@ -16,7 +16,7 @@ class WalletResource extends JsonResource
     {
         return [
             "balance" => $this->balance,
-            "created_at" => $this->created_at->format('Y/m/d H:i:s'),,
+            "created_at" => $this->created_at->format('Y/m/d H:i:s'),
         ];
     }
 }

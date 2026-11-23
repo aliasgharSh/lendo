@@ -7,6 +7,7 @@ use App\Http\Requests\DepositRequest;
 use App\Http\Requests\WithdrawRequest;
 use App\Http\Resources\WalletResource;
 use App\Http\Resources\WalletTransactionResource;
+use App\Repositories\WalletRepository;
 use App\Services\WalletService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -17,12 +18,13 @@ class WalletController extends Controller
 
     public function __construct(
         private WalletService $walletService,
+        private WalletRepository $walletRepository
     ) {}
 
     // Display the user's wallet information
     public function show(Request $request)
     {
-        $wallet = $request->user()->wallet;
+        $wallet = $this->walletRepository->findByUser($request->user());
 
         return $this->successResponse(
             'Wallet information retrieved successfully.',
@@ -46,7 +48,7 @@ class WalletController extends Controller
 
     public function transactions(Request $request)
     {
-        $wallet = $request->user()->wallet;
+        $wallet = $this->walletRepository->findByUser($request->user());
         if (!$wallet) {
             return $this->errorResponse('Wallet not found.', 404);
         }

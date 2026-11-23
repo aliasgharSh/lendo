@@ -3,62 +3,56 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Models\Wallet;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use App\Exceptions\IdempotencyConflictException;
+use App\Repositories\WalletRepository;
 
 class WalletService
 {
-
+    public function __construct(
+        private WalletRepository $walletRepository
+    ) {}
     public function deposit(User $user, int $amount, string $key)
     {
         if ($amount <= 0) {
             throw new RuntimeException("Amount must be greater than zero");
         }
-        return DB::transaction(function () use ($key, $user, $amount) {
-            $wallet = $user->wallet()->firstOrCreate([], ['balance' => 0]);
-            $wallet = Wallet::whereKey($wallet->id)->lockForUpdate()->firstOrFail();
 
-            $existing = $wallet->transactions()->where('idempotency_key', $key)->first();
+        return $this->walletRepository->transaction(function () use ($key, $user, $amount) {
+
+            $wallet = $this->walletRepository->firstOrCreateForUser($user);
+
+            $wallet = $this->walletRepository->lockForUpdateWallet($wallet);
+
+            $existing = $this->walletRepository->findTransactionByKey($wallet, $key);
+
             if ($existing) {
                 if ($existing->amount !== $amount || $existing->type !== 'deposit') {
                     throw new IdempotencyConflictException();
                 }
+
                 return $wallet;
             }
+
             $beforeBalance = $wallet->balance;
             $afterBalance = $beforeBalance + $amount;
 
-            $wallet->update([
-                'balance' => $afterBalance,
-            ]);
+            $this->walletRepository->updateBalance($wallet, $afterBalance);
 
-            $wallet->transactions()->create([
-                'type' => 'deposit',
-                'amount' => $amount,
-                'before_balance' => $beforeBalance,
-                'after_balance' => $afterBalance,
-                'idempotency_key' => $key,
-            ]);
+            $this->walletRepository->createTransaction($wallet, "deposit", $amount, $beforeBalance, $afterBalance, $key);
 
             return $wallet;
         });
     }
 
-
-
-
     public function withdraw(User $user, int $amount, string $key)
     {
         if ($amount <= 0) {
-            throw new RuntimeException(
-                'Amount must be greater than zero.'
-            );
+            throw new RuntimeException('Amount must be greater than zero.');
         }
-        return DB::transaction(function () use ($user, $amount, $key) {
-            $wallet = $user->wallet()->lockForUpdate()->firstOrFail();
-            $existing = $wallet->transactions()->where('idempotency_key', $key)->first();
+        return $this->walletRepository->transaction(function () use ($user, $amount, $key) {
+            $wallet = $this->walletRepository->findForUserLocked($user);
+            $existing = $this->walletRepository->findTransactionByKey($wallet, $key);
 
             if ($existing) {
                 if ($existing->amount !== $amount || $existing->type !== 'withdrawal') {
@@ -74,17 +68,8 @@ class WalletService
             }
 
             $afterBalance = $beforeBalance - $amount;
-            $wallet->update([
-                'balance' => $afterBalance,
-            ]);
-
-            $wallet->transactions()->create([
-                'type' => 'withdrawal',
-                'amount' => $amount,
-                'before_balance' => $beforeBalance,
-                'after_balance' => $afterBalance,
-                'idempotency_key' => $key,
-            ]);
+            $this->walletRepository->updateBalance($wallet, $afterBalance);
+            $this->walletRepository->createTransaction($wallet, "withdrawal", $amount, $beforeBalance, $afterBalance, $key);
             return $wallet;
         });
     }
